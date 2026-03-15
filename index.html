@@ -167,11 +167,7 @@ const CAL_GYM = [
   {n:'Cardio en cinta — carrera suave',s:'10 min'},
 ];
 const EST_GYM = [
-  {n:'Estiramiento de cuádriceps de pie',s:'45 seg/lado'},
-  {n:'Estiramiento de isquiotibiales sentado',s:'45 seg/lado'},
-  {n:'Estiramiento de pectoral en marco de puerta',s:'45 seg/lado'},
-  {n:'Estiramiento de espalda (gato-vaca)',s:'1 min'},
-  {n:'Estiramiento de hombros cruzado',s:'30 seg/lado'},
+  {n:'Rutina completa de estiramientos',s:'10 min', stretch:true},
 ];
 
 const plan = [
@@ -321,6 +317,12 @@ function selectSem(idx){
 let dc=0;
 function renderEjs(items,tipo){
   return items.map(e=>{
+    if(e.stretch){
+      return `<div class="ejercicio"><div class="ej-row">
+        <div class="ej-left"><span class="ej-name" style="font-weight:700;color:#ff5500;text-transform:uppercase;font-size:12px;letter-spacing:.04em;">🧘 ${e.n}</span></div>
+        <button onclick="openStretch(event)" style="background:#ff5500;border:none;border-radius:2px;color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;cursor:pointer;white-space:nowrap;">Ver ejercicios →</button>
+      </div></div>`;
+    }
     const desc=getDesc(e.n);
     const id='d'+(dc++);
     const btn=desc?`<button class="ej-info-btn" onclick="toggleDesc('${id}',event)">i</button>`:'';
@@ -394,6 +396,274 @@ function toggleDone(semIdx,di,e){
 
 buildWeekBtns();
 selectSem(0);
+</script>
+
+<!-- MODAL LISTA ESTIRAMIENTOS -->
+<div id="stretch-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;background:#0a0a0a;overflow-y:auto;">
+  <div style="max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ff5500;margin-bottom:4px;">Rutina de estiramientos</div>
+        <div style="font-size:18px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;">10 MINUTOS</div>
+      </div>
+      <button onclick="closeStretch()" style="background:#1a1a1a;border:1.5px solid #333;border-radius:2px;color:#888;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;">✕ Cerrar</button>
+    </div>
+    <div style="background:#111;border:1px solid #222;border-top:2px solid #ff5500;border-radius:2px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff5500;margin-bottom:6px;">⏱ 10 min · 6 ejercicios · sin rebotes</div>
+      <div style="font-size:12px;color:#666;line-height:1.5;">Toca cada ejercicio para ver la postura. Mantén estático y respira profundo.</div>
+    </div>
+    <div id="stretch-list"></div>
+  </div>
+</div>
+
+<!-- VISOR POSTURA -->
+<div id="pose-viewer" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:#0a0a0a;overflow-y:auto;">
+  <div style="max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <button onclick="closePose()" style="background:#1a1a1a;border:1.5px solid #333;border-radius:2px;color:#ff5500;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;">← Volver</button>
+      <div style="flex:1;">
+        <div id="pose-num" style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff5500;"></div>
+        <div id="pose-name" style="font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;"></div>
+      </div>
+    </div>
+    <!-- SVG postura -->
+    <div id="pose-svg" style="background:#111;border:1px solid #222;border-top:2px solid #ff5500;border-radius:2px;padding:20px;display:flex;justify-content:center;align-items:center;min-height:260px;margin-bottom:14px;"></div>
+    <!-- Info -->
+    <div style="background:#111;border:1px solid #222;border-radius:2px;padding:14px;margin-bottom:10px;">
+      <div id="pose-time" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ff5500;margin-bottom:8px;"></div>
+      <div id="pose-desc" style="font-size:13px;color:#ccc;line-height:1.7;"></div>
+    </div>
+    <div id="pose-tip" style="background:#0f0f0f;border:1px solid #1a1a1a;border-left:2px solid #ff5500;border-radius:2px;padding:10px 12px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ff5500;margin-bottom:4px;">Clave</div>
+      <div id="pose-tip-text" style="font-size:12px;color:#888;line-height:1.5;"></div>
+    </div>
+    <!-- Nav entre ejercicios -->
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button id="prev-btn" onclick="navPose(-1)" style="flex:1;background:#1a1a1a;border:1.5px solid #333;border-radius:2px;color:#888;font-size:11px;font-weight:700;padding:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;">← Anterior</button>
+      <button id="next-btn" onclick="navPose(1)" style="flex:1;background:#ff5500;border:1.5px solid #ff5500;border-radius:2px;color:#fff;font-size:11px;font-weight:700;padding:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const stretches = [
+  {
+    name:'Cuádriceps de pie', num:'01 / 06', time:'45 seg · cada pierna',
+    desc:'De pie, dobla la rodilla llevando el talón hacia el glúteo. Sujeta el tobillo con la mano del mismo lado. Mantén las rodillas juntas y el torso erguido.',
+    tip:'Si pierdes el equilibrio, apóyate en la pared con la mano libre.',
+    svg:`<svg viewBox="0 0 120 220" width="120" height="220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Cabeza -->
+      <circle cx="60" cy="22" r="12" fill="none" stroke="#ff5500" stroke-width="2.5"/>
+      <!-- Torso -->
+      <line x1="60" y1="34" x2="60" y2="110" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazo izq (bajado) -->
+      <line x1="60" y1="50" x2="32" y2="80" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <line x1="32" y1="80" x2="28" y2="110" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <!-- Brazo der (sujetando tobillo) -->
+      <line x1="60" y1="50" x2="82" y2="75" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="82" y1="75" x2="88" y2="155" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Pierna izq (recta) -->
+      <line x1="60" y1="110" x2="48" y2="165" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="48" y1="165" x2="44" y2="210" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Pierna der (doblada, talón al glúteo) -->
+      <line x1="60" y1="110" x2="72" y2="140" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="72" y1="140" x2="88" y2="155" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Flecha indicadora -->
+      <text x="95" y="158" font-size="10" fill="#ff5500">↑</text>
+      <text x="8" y="218" font-size="9" fill="#555">apoyo</text>
+    </svg>`
+  },
+  {
+    name:'Isquiotibiales tumbado', num:'02 / 06', time:'45 seg · cada pierna',
+    desc:'Tumbado boca arriba, estira una pierna hacia el techo. Sujétala con las dos manos por el muslo o el gemelo. Mantén la pierna de abajo apoyada en el suelo.',
+    tip:'No fuerces la rodilla. Si no llegas al muslo usa una toalla o banda.',
+    svg:`<svg viewBox="0 0 220 100" width="220" height="100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Suelo -->
+      <line x1="10" y1="88" x2="210" y2="88" stroke="#333" stroke-width="1.5"/>
+      <!-- Cabeza -->
+      <circle cx="20" cy="72" r="10" fill="none" stroke="#ff5500" stroke-width="2.5"/>
+      <!-- Torso tumbado -->
+      <line x1="30" y1="78" x2="120" y2="82" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Pierna izq tumbada -->
+      <line x1="120" y1="82" x2="200" y2="84" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Pierna der estirada arriba -->
+      <line x1="110" y1="80" x2="130" y2="20" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazos sujetando pierna -->
+      <line x1="60" y1="72" x2="118" y2="40" stroke="#ff5500" stroke-width="2" stroke-linecap="round" stroke-dasharray="3,2"/>
+      <line x1="75" y1="68" x2="122" y2="35" stroke="#ff5500" stroke-width="2" stroke-linecap="round" stroke-dasharray="3,2"/>
+      <!-- Flecha -->
+      <text x="133" y="18" font-size="10" fill="#ff5500">↑</text>
+    </svg>`
+  },
+  {
+    name:'Pectoral de pie', num:'03 / 06', time:'30 seg · 2–4 repeticiones',
+    desc:'De pie, junta las manos detrás de la espalda y estira los brazos hacia atrás. Saca el pecho hacia adelante y eleva ligeramente el mentón.',
+    tip:'Cuanto más elevas las manos hacia atrás, más intenso es el estiramiento.',
+    svg:`<svg viewBox="0 0 120 220" width="120" height="220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Cabeza -->
+      <circle cx="60" cy="22" r="12" fill="none" stroke="#ff5500" stroke-width="2.5"/>
+      <!-- Torso (pecho abierto, ligeramente hacia adelante) -->
+      <line x1="60" y1="34" x2="60" y2="110" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazos hacia atrás unidos -->
+      <line x1="60" y1="55" x2="30" y2="80" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="30" y1="80" x2="55" y2="105" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="60" y1="55" x2="90" y2="80" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="90" y1="80" x2="65" y2="105" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Manos unidas atrás -->
+      <ellipse cx="60" cy="108" rx="8" ry="5" fill="none" stroke="#ff5500" stroke-width="2"/>
+      <!-- Flecha pecho -->
+      <text x="15" y="58" font-size="9" fill="#ff5500">→</text>
+      <!-- Piernas -->
+      <line x1="60" y1="110" x2="45" y2="165" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="45" y1="165" x2="42" y2="210" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="60" y1="110" x2="75" y2="165" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="75" y1="165" x2="78" y2="210" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    name:'Espalda gato-vaca', num:'04 / 06', time:'1 min continuo',
+    desc:'A cuatro patas, manos bajo los hombros y rodillas bajo las caderas. Alterna: arquea la espalda hacia arriba (gato) y húndela hacia abajo (vaca). Movimiento fluido y continuo.',
+    tip:'Mueve toda la columna desde el cuello hasta la cadera. Ve despacio.',
+    svg:`<svg viewBox="0 0 220 130" width="220" height="130" xmlns="http://www.w3.org/2000/svg">
+      <!-- Suelo -->
+      <line x1="10" y1="115" x2="210" y2="115" stroke="#333" stroke-width="1.5"/>
+      <!-- GATO (espalda arqueada) - izquierda -->
+      <text x="18" y="18" font-size="9" fill="#ff5500" font-weight="bold">GATO</text>
+      <!-- Cabeza abajo -->
+      <circle cx="30" cy="75" r="9" fill="none" stroke="#ff5500" stroke-width="2"/>
+      <!-- Espalda arqueada arriba -->
+      <path d="M40 80 Q75 40 110 80" fill="none" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazos -->
+      <line x1="40" y1="80" x2="25" y2="112" stroke="#ff5500" stroke-width="2" stroke-linecap="round"/>
+      <line x1="55" y1="88" x2="55" y2="112" stroke="#ff5500" stroke-width="2" stroke-linecap="round"/>
+      <!-- Patas traseras -->
+      <line x1="95" y1="88" x2="95" y2="112" stroke="#ff5500" stroke-width="2" stroke-linecap="round"/>
+      <line x1="110" y1="80" x2="125" y2="112" stroke="#ff5500" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Separador -->
+      <line x1="135" y1="20" x2="135" y2="115" stroke="#222" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- VACA (espalda hundida) - derecha -->
+      <text x="148" y="18" font-size="9" fill="#aaa" font-weight="bold">VACA</text>
+      <!-- Cabeza arriba -->
+      <circle cx="152" cy="55" r="9" fill="none" stroke="#aaa" stroke-width="2"/>
+      <!-- Espalda hundida abajo -->
+      <path d="M162 70 Q192 100 222 70" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazos -->
+      <line x1="162" y1="70" x2="148" y2="112" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <line x1="175" y1="82" x2="175" y2="112" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <!-- Patas traseras -->
+      <line x1="210" y1="82" x2="210" y2="112" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    name:'Tríceps y hombro', num:'05 / 06', time:'30 seg · cada lado',
+    desc:'De pie, lleva un brazo al techo. Dobla el codo llevando la mano hacia la espalda. Con la otra mano empuja suavemente el codo hacia abajo.',
+    tip:'Mantén el cuello relajado y el abdomen activo. No bloquees la respiración.',
+    svg:`<svg viewBox="0 0 120 220" width="120" height="220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Cabeza -->
+      <circle cx="60" cy="22" r="12" fill="none" stroke="#ff5500" stroke-width="2.5"/>
+      <!-- Torso -->
+      <line x1="60" y1="34" x2="60" y2="110" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazo der arriba (estirado al techo) -->
+      <line x1="60" y1="50" x2="80" y2="20" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Antebrazo der doblado hacia espalda -->
+      <line x1="80" y1="20" x2="68" y2="55" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Flecha codo arriba -->
+      <text x="82" y="18" font-size="10" fill="#ff5500">↑</text>
+      <!-- Brazo izq sujetando codo -->
+      <line x1="60" y1="50" x2="38" y2="65" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <line x1="38" y1="65" x2="68" y2="52" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-dasharray="3,2"/>
+      <!-- Piernas -->
+      <line x1="60" y1="110" x2="45" y2="165" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="45" y1="165" x2="42" y2="210" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="60" y1="110" x2="75" y2="165" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="75" y1="165" x2="78" y2="210" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    name:'Flexor de cadera', num:'06 / 06', time:'45 seg · cada lado',
+    desc:'Arrodillado en el suelo, adelanta una pierna formando 90° con la rodilla. Empuja la cadera hacia adelante y abajo manteniendo el torso erguido.',
+    tip:'Cuanto más adelantas la cadera sin arquear la espalda, más intenso el estiramiento.',
+    svg:`<svg viewBox="0 0 180 200" width="180" height="200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Suelo -->
+      <line x1="10" y1="188" x2="170" y2="188" stroke="#333" stroke-width="1.5"/>
+      <!-- Cabeza -->
+      <circle cx="105" cy="30" r="12" fill="none" stroke="#ff5500" stroke-width="2.5"/>
+      <!-- Torso erguido -->
+      <line x1="105" y1="42" x2="105" y2="110" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Brazos laterales -->
+      <line x1="105" y1="60" x2="78" y2="85" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <line x1="105" y1="60" x2="132" y2="85" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>
+      <!-- Pierna delantera (rodilla 90°) -->
+      <line x1="105" y1="110" x2="148" y2="138" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="148" y1="138" x2="158" y2="188" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Pierna trasera (rodilla en suelo) -->
+      <line x1="105" y1="110" x2="72" y2="140" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="72" y1="140" x2="42" y2="138" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Rodilla en suelo -->
+      <ellipse cx="42" cy="142" rx="8" ry="5" fill="none" stroke="#aaa" stroke-width="1.5"/>
+      <!-- Flecha cadera adelante -->
+      <text x="108" y="118" font-size="10" fill="#ff5500">→</text>
+    </svg>`
+  }
+];
+
+let currentPoseIdx = 0;
+
+function buildStretchList(){
+  const el = document.getElementById('stretch-list');
+  el.innerHTML = stretches.map((s,i)=>`
+    <div onclick="openPose(${i})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#111;border:1px solid #222;border-radius:2px;margin-bottom:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+      <div style="width:50px;height:50px;background:#0f0f0f;border:1px solid #333;border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+        ${s.svg.replace(/width="[^"]*" height="[^"]*"/, 'width="50" height="50"')}
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#ff5500;margin-bottom:2px;">${s.num}</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.02em;">${s.name}</div>
+        <div style="font-size:11px;color:#666;margin-top:2px;">${s.time}</div>
+      </div>
+      <div style="color:#ff5500;font-size:18px;font-weight:700;">→</div>
+    </div>`).join('');
+}
+
+function openStretch(e){ 
+  e.stopPropagation(); 
+  buildStretchList();
+  document.getElementById('stretch-modal').style.display='block'; 
+  document.body.style.overflow='hidden'; 
+}
+
+function closeStretch(){ 
+  document.getElementById('stretch-modal').style.display='none'; 
+  document.body.style.overflow=''; 
+}
+
+function openPose(idx){
+  currentPoseIdx = idx;
+  const s = stretches[idx];
+  document.getElementById('pose-num').textContent = s.num;
+  document.getElementById('pose-name').textContent = s.name;
+  document.getElementById('pose-svg').innerHTML = s.svg.replace(/width="[^"]*" height="[^"]*"/, 'width="100%" height="240"');
+  document.getElementById('pose-time').textContent = '⏱ ' + s.time;
+  document.getElementById('pose-desc').textContent = s.desc;
+  document.getElementById('pose-tip-text').textContent = s.tip;
+  document.getElementById('prev-btn').style.opacity = idx === 0 ? '0.3' : '1';
+  document.getElementById('next-btn').textContent = idx === stretches.length-1 ? '✓ Fin' : 'Siguiente →';
+  document.getElementById('pose-viewer').style.display='block';
+  document.getElementById('pose-viewer').scrollTop=0;
+}
+
+function closePose(){
+  document.getElementById('pose-viewer').style.display='none';
+}
+
+function navPose(dir){
+  const next = currentPoseIdx + dir;
+  if(next < 0) return;
+  if(next >= stretches.length){ closePose(); return; }
+  openPose(next);
+}
 </script>
 </body>
 </html>
