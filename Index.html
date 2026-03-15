@@ -1,1 +1,410 @@
+<!DOCTYPE html>
 
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jandro Fit">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f12">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfqAw8QBRVoREscAACAAElEQVR42oz9abRt2XUWAHN+e+9zzn3vVb2qXr2qXr03b96UREISSUiAJAQIAYGwWWwwtrHBxgYbe2yMjW2MMcYYY4wxxhhjjDHGGGOMMcYYY2OMscYYY4wx1lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa621wFprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211lprrbXWWmuttdZaa6211g==">
+<title>Plan Entreno Jandro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0a; --bg2: #111111; --bg3: #1a1a1a;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.15);
+    --text: #ffffff; --muted: #888888; --muted2: #555555;
+    --bike: #ff5500; --bike-bg: rgba(255,85,0,0.12);
+    --gym: #ff5500; --gym-bg: rgba(255,85,0,0.12);
+    --rest: #ffaa00; --rest-bg: rgba(255,170,0,0.10);
+    --accent: #ff5500; --r: 4px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  html { height: 100%; height: -webkit-fill-available; }
+  body { min-height: 100vh; min-height: -webkit-fill-available; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
+  #app { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+.header { padding: calc(var(–safe-top) + 0px) 0 0; background: var(–bg); border-bottom: 2px solid var(–accent); flex-shrink: 0; }
+.header-band { background: var(–accent); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
+.app-title { font-family: ‘DM Sans’, sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .14em; color: #fff; text-transform: uppercase; }
+.week-counter { font-family: ‘DM Sans’, sans-serif; font-size: 12px; font-weight: 700; color: #fff; letter-spacing: .08em; text-transform: uppercase; }
+.week-scroll-wrap { padding: 10px 16px 10px; }
+.week-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.week-scroll::-webkit-scrollbar { display: none; }
+.week-btn { flex-shrink: 0; min-width: 48px; height: 36px; border-radius: 2px; border: 1.5px solid #333; background: var(–bg2); color: var(–muted); font-family: ‘DM Sans’, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; transition: all .15s; position: relative; padding: 0 8px; }
+.week-btn .wnum { font-size: 15px; font-weight: 700; line-height: 1; }
+.week-btn .wlabel { font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.week-btn.active { background: var(–accent); border-color: var(–accent); color: #fff; }
+.week-btn.descarga.active { background: var(–rest); border-color: var(–rest); color: #000; }
+.week-btn .dot { position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(–accent); opacity: 0; }
+.week-btn.done .dot { opacity: 1; }
+.week-btn.active .dot { background: rgba(255,255,255,0.6); }
+
+.progress-wrap { padding: 0 0 0; flex-shrink: 0; }
+.progress-track { height: 3px; background: #1a1a1a; }
+.progress-fill { height: 100%; background: var(–accent); transition: width .4s ease; }
+.progress-meta { display: flex; justify-content: space-between; padding: 5px 20px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(–muted2); }
+
+.content { flex: 1; overflow-y: auto; padding: 12px 12px calc(var(–safe-bot) + 12px); scrollbar-width: none; }
+.content::-webkit-scrollbar { display: none; }
+
+.fase-tag { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; margin-bottom: 12px; border: 1px solid; }
+.fase-base { background: var(–bike-bg); color: var(–bike); border-color: var(–bike); }
+.fase-descarga { background: var(–rest-bg); color: var(–rest); border-color: var(–rest); }
+.fase-progresion { background: rgba(255,85,0,0.08); color: var(–accent); border-color: var(–accent); }
+.fase-eval { background: #1a1a1a; color: var(–muted); border-color: #333; }
+
+.day-card { background: var(–bg2); border: 1px solid #222; border-radius: var(–r); margin-bottom: 8px; overflow: hidden; transition: border-color .15s; }
+.day-card.expanded { border-color: var(–accent); border-top: 2px solid var(–accent); }
+.day-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.day-icon { width: 34px; height: 34px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; background: var(–bg3); border: 1px solid #333; }
+.day-info { flex: 1; min-width: 0; }
+.day-title { font-size: 13px; font-weight: 700; line-height: 1.3; letter-spacing: .02em; text-transform: uppercase; }
+.day-sub { font-size: 11px; color: var(–muted); margin-top: 2px; letter-spacing: .04em; }
+.day-arrow { width: 18px; height: 18px; color: var(–muted2); flex-shrink: 0; transition: transform .2s; }
+.day-card.expanded .day-arrow { transform: rotate(180deg); color: var(–accent); }
+.day-body { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+.day-body-inner { padding: 0 14px 14px; border-top: 1px solid #222; }
+.section-label { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(–accent); padding: 10px 0 4px; font-weight: 700; }
+
+.ejercicio { border-bottom: 1px solid #1a1a1a; }
+.ejercicio:last-of-type { border-bottom: none; }
+.ej-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0 6px; gap: 8px; }
+.ej-left { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; }
+.ej-name { font-size: 13px; font-weight: 400; line-height: 1.3; }
+.ej-info-btn { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #333; background: transparent; color: var(–muted2); font-size: 9px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.ej-info-btn.open { background: var(–accent); border-color: var(–accent); color: #fff; }
+.ej-series { font-size: 11px; font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0; letter-spacing: .04em; color: var(–accent); }
+.c-bike { color: var(–accent); } .c-gym { color: var(–accent); } .c-rest { color: var(–rest); }
+.ej-desc { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.ej-desc-inner { padding: 2px 0 10px; font-size: 12px; color: var(–muted); line-height: 1.6; border-left: 2px solid var(–accent); margin-left: 9px; padding-left: 12px; }
+.ej-desc-inner strong { color: #fff; font-weight: 700; display: block; margin-top: 4px; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+
+.nota { margin-top: 10px; padding: 10px 12px; background: #0f0f0f; border-radius: 2px; font-size: 12px; color: var(–muted); line-height: 1.5; border-left: 2px solid #333; }
+.done-wrap { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.done-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(–muted2); }
+.done-btn { display: flex; align-items: center; gap: 6px; background: transparent; border: 1.5px solid #333; border-radius: 2px; padding: 7px 16px; color: var(–muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-family: ‘DM Sans’, sans-serif; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.done-btn:active { transform: scale(.97); }
+.done-btn.ck-bike, .done-btn.ck-gym { background: var(–accent); border-color: var(–accent); color: #fff; }
+.done-btn.ck-rest { background: var(–rest); border-color: var(–rest); color: #000; }
+
+.week-complete { text-align: center; padding: 40px 16px; display: none; }
+.week-complete.show { display: block; }
+.complete-icon { font-size: 52px; margin-bottom: 14px; }
+.complete-title { font-size: 22px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; color: var(–accent); }
+.complete-sub { font-size: 13px; color: var(–muted); line-height: 1.6; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.day-card { animation: fadeUp .25s ease both; }
+.day-card:nth-child(2) { animation-delay: .05s; }
+.day-card:nth-child(3) { animation-delay: .1s; }
+</style>
+
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-band">
+      <span class="app-title">Plan · 8 semanas</span>
+      <span class="week-counter" id="week-counter">Sem 1 / 8</span>
+    </div>
+    <div class="week-scroll-wrap">
+      <div class="week-scroll" id="week-scroll"></div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:12.5%"></div></div>
+    <div class="progress-meta">
+      <span>Inicio: 16 mar 2026</span>
+      <span id="prog-pct">12.5%</span>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+<script>
+const STORAGE_KEY = 'plan_jandro_v1';
+
+const DESC = {
+‘Calentamiento’: ‘Pedaleo suave para activar músculos y articulaciones. Respiración completamente cómoda.’,
+‘Zona 2 (puedes hablar)’: ‘Intensidad baja-moderada donde puedes mantener una conversación completa. Es la zona donde el cuerpo quema más grasa como combustible.’,
+‘Zona 2’: ‘Intensidad baja-moderada donde puedes mantener una conversación completa. Es la zona donde el cuerpo quema más grasa como combustible.’,
+‘Zona 1 solamente’: ‘Muy ligero, sin apenas esfuerzo. Solo para mantener el movimiento y favorecer la recuperación activa.’,
+‘Ritmo constante’: ‘Intensidad zona 2: esfuerzo sostenido y cómodo, puedes hablar pero no cantar.’,
+‘Ritmo muy tranquilo’: ‘Zona 1: muy ligero, sin apenas esfuerzo. Solo para mantener el movimiento y favorecer la recuperación.’,
+‘Vuelta a la calma’: ‘Reduce la intensidad progresivamente para que el corazón y los músculos vuelvan a la normalidad.’,
+‘Intervalos 2 min fuerte / 2 min suave’: ‘Alterna 2 minutos a esfuerzo 8/10 con 2 minutos de recuperación suave. El fuerte debe sentirse difícil pero controlado.’,
+‘Intervalos 3 min fuerte / 2 min suave’: ‘Alterna 3 minutos a esfuerzo 8/10 con 2 minutos de recuperación suave.’,
+‘Intervalos 4 min fuerte / 2 min suave’: ‘Alterna 4 minutos a esfuerzo 8/10 con 2 minutos de recuperación suave. Con la base de semanas previas es muy alcanzable.’,
+‘Intervalos 5 min fuerte / 2 min suave’: ‘Los bloques más largos del plan. Esfuerzo 8/10 durante 5 minutos seguido de 2 minutos de recuperación suave.’,
+‘Movilidad / stretching’: ‘Estiramientos suaves de cuerpo completo. Articulaciones, cadera, espalda. Sin forzar nada.’,
+‘Revisa tu progreso’: ‘Compara cómo te sientes hoy respecto a la semana 1. ¿Qué mejoró? ¿Qué cambiarías en el siguiente ciclo?’,
+‘Sentadilla’: ‘De pie con los pies a la anchura de los hombros. Baja doblando rodillas y cadera hasta que los muslos queden paralelos al suelo. Sube empujando con los talones.<strong>Clave: rodillas alineadas con las puntas de los pies, espalda recta.</strong>’,
+‘Peso muerto’: ‘Con la barra o mancuernas delante. Espalda recta, agarre firme. Empuja el suelo con los pies para subir manteniendo la barra pegada al cuerpo.<strong>Clave: no redondees la espalda baja. Es un movimiento de cadera, no de rodillas.</strong>’,
+‘Press banca’: ‘Tumbado en el banco, barra o mancuernas a la altura del pecho. Baja controlando hasta rozar el pecho y empuja hacia arriba.<strong>Clave: pies apoyados en el suelo, escápulas retraídas.</strong>’,
+‘Remo polea’: ‘Sentado frente a la polea, agarra el tirador y llévalo hacia el abdomen manteniendo la espalda recta. Vuelve despacio.<strong>Clave: no uses el impulso del torso, el movimiento es de brazos y espalda.</strong>’,
+‘Remo con barra’: ‘Con la barra colgando, torso inclinado ~45°. Lleva la barra hacia el abdomen. Vuelve despacio.<strong>Clave: codos hacia atrás, no hacia los lados.</strong>’,
+‘Plancha’: ‘Apoyado en antebrazos y puntas de los pies. El cuerpo forma una línea recta. Aprieta el abdomen y el glúteo.<strong>Respira con normalidad, no contengas el aire.</strong>’,
+‘Dominadas asistidas o remo’: ‘Dominadas con banda de asistencia o remo en máquina/polea. Lleva el pecho hacia la barra o el tirador hacia el pecho.<strong>Clave: activa la espalda antes de tirar con los brazos.</strong>’,
+‘Press hombro mancuernas’: ‘Sentado o de pie con una mancuerna en cada mano a la altura de los hombros. Empuja hacia arriba hasta estirar los brazos. Baja controlando.<strong>Clave: no arquees la zona lumbar al subir.</strong>’,
+‘Movilidad articular (cuello, hombros, cadera)’: ‘Círculos suaves con el cuello, rotaciones de hombros hacia adelante y atrás, y círculos de cadera. 30 segundos cada articulación. Activa las zonas que vas a trabajar sin fatigarlas.<strong>Nunca fuerces el rango de movimiento en frío.</strong>’,
+‘Sentadilla con peso corporal’: ‘Igual que la sentadilla normal pero sin peso. Baja despacio y sube controlando. Activa cuádriceps, glúteos y movilidad de cadera antes de cargar.<strong>2 series lentas de 15 reps es suficiente para calentar bien.</strong>’,
+‘Banda elástica o remo con banda’: ‘Con una banda elástica anclada a algo fijo, simula el movimiento de remo llevando los codos hacia atrás. Activa la espalda media antes de los ejercicios de tirón.<strong>Clave: aprieta las escápulas al final del movimiento.</strong>’,
+‘Fondos en banco o flexiones’: ‘Flexiones normales en el suelo o fondos en un banco. Activan pectoral, hombros y tríceps antes de los ejercicios de empuje.<strong>No hace falta llegar al fallo — solo activar el músculo.</strong>’,
+‘Estiramiento de cuádriceps de pie’: ‘De pie, dobla una rodilla llevando el talón hacia el glúteo y sujétalo con la mano. Mantén las rodillas juntas y el torso erguido. 45 segundos por lado.<strong>Si pierdes el equilibrio, apóyate en una pared con la otra mano.</strong>’,
+‘Estiramiento de isquiotibiales sentado’: ‘Sentado en el suelo con las piernas estiradas. Inclínate hacia adelante intentando tocar los pies sin doblar las rodillas. 45 segundos por lado.<strong>No rebotes — mantén la posición estática y respira profundo.</strong>’,
+‘Estiramiento de pectoral en marco de puerta’: ‘Apoya un antebrazo en el marco de una puerta con el codo a 90°. Gira el cuerpo hacia el lado contrario hasta notar el estiramiento en el pectoral. 45 segundos por lado.<strong>Puedes subir o bajar el brazo para estirar distintas partes del pectoral.</strong>’,
+‘Estiramiento de espalda (gato-vaca)’: ‘A cuatro patas. Alterna entre arquear la espalda hacia arriba (gato) y hundirla hacia abajo (vaca) de forma fluida. 1 minuto seguido.<strong>Mueve toda la columna, desde el cuello hasta la cadera. Ideal para soltar tensión post-entreno.</strong>’,
+‘Estiramiento de hombros cruzado’: ‘Lleva un brazo estirado cruzando el pecho y presiónalo con el otro brazo hacia tu cuerpo. 30 segundos por lado.<strong>Evita rotar el cuello — mantén la cabeza recta y el hombro hacia abajo.</strong>’,
+};
+
+function getDesc(n) {
+if (DESC[n]) return DESC[n];
+const base = n.replace(/—.*$/, ‘’).trim();
+if (DESC[base]) return DESC[base];
+for (const k of Object.keys(DESC)) {
+if (base.length > 5 && base.toLowerCase().startsWith(k.toLowerCase().substring(0, Math.min(k.length, 12)))) return DESC[k];
+}
+return null;
+}
+
+const CAL_GYM = [
+{n:‘Movilidad articular (cuello, hombros, cadera)’, s:‘2 min’},
+{n:‘Sentadilla con peso corporal’, s:‘2×15’},
+{n:‘Banda elástica o remo con banda’, s:‘2×15’},
+{n:‘Fondos en banco o flexiones’, s:‘2×10’},
+];
+const EST_GYM = [
+{n:‘Estiramiento de cuádriceps de pie’, s:‘45 seg/lado’},
+{n:‘Estiramiento de isquiotibiales sentado’, s:‘45 seg/lado’},
+{n:‘Estiramiento de pectoral en marco de puerta’, s:‘45 seg/lado’},
+{n:‘Estiramiento de espalda (gato-vaca)’, s:‘1 min’},
+{n:‘Estiramiento de hombros cruzado’, s:‘30 seg/lado’},
+];
+
+const plan = [
+{ sem:1, fase:‘base’, label:‘Base’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Ciclismo zona 2’, sub:‘60 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min fácil’},{n:‘Zona 2 (puedes hablar)’,s:‘45 min’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘FC objetivo 60–70% máx. Bike indoor: clase de ritmo suave. Toca ⓘ para ver descripción de cada bloque.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza’, sub:‘60 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘3×12 — peso ligero’},{n:‘Press banca’,s:‘3×12 — técnica’},{n:‘Remo polea’,s:‘3×12’},{n:‘Press hombro mancuernas’,s:‘3×12’},{n:‘Plancha’,s:‘3×25 seg’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘Descanso 60 seg entre series. Prioriza técnica sobre peso.’},
+{ tipo:‘bike’, dia:‘Sábado’, titulo:‘Día 3 — Intervalos’, sub:‘45 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Intervalos 2 min fuerte / 2 min suave’,s:‘×5’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Fuerte = esfuerzo 8/10. Bike indoor: clase con sprints cortos.’},
+]},
+{ sem:2, fase:‘base’, label:‘Base’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Ciclismo zona 2’, sub:‘70 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min fácil’},{n:‘Zona 2’,s:‘55 min’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:’+10 min respecto a la semana 1. Misma intensidad baja.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza’, sub:‘65 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘4×10 — sube peso’},{n:‘Peso muerto’,s:‘3×10 — aprende el patrón’},{n:‘Press banca’,s:‘3×10’},{n:‘Remo polea’,s:‘3×10’},{n:‘Plancha’,s:‘3×30 seg’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘Introduces el peso muerto. Pide al monitor que revise tu postura si puedes.’},
+{ tipo:‘bike’, dia:‘Sábado’, titulo:‘Día 3 — Intervalos’, sub:‘45 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Intervalos 3 min fuerte / 2 min suave’,s:‘×5’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Alargas los bloques fuertes de 2 a 3 min.’},
+]},
+{ sem:3, fase:‘base’, label:‘Base’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Ciclismo zona 2’, sub:‘80 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min fácil’},{n:‘Zona 2’,s:‘65 min’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Máximo de zona 2 del bloque. Sem. 4 bajas la carga.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza’, sub:‘65 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘4×8 — peso medio’},{n:‘Peso muerto’,s:‘4×8’},{n:‘Press banca’,s:‘4×8’},{n:‘Remo con barra’,s:‘3×10’},{n:‘Plancha’,s:‘3×35 seg’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘Añades una serie extra en los compuestos principales.’},
+{ tipo:‘bike’, dia:‘Sábado’, titulo:‘Día 3 — Intervalos’, sub:‘50 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Intervalos 3 min fuerte / 2 min suave’,s:‘×6’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Un intervalo más. Empieza a notar la diferencia respecto a la semana 1.’},
+]},
+{ sem:4, fase:‘descarga’, label:‘Descarga’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Ciclismo suave’, sub:‘45 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Zona 1 solamente’,s:‘45 min’}]}
+], nota:‘Semana de recuperación activa. El cuerpo se adapta cuando descansa.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza ligera’, sub:‘50 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘2×12 — 70% del peso habitual’},{n:‘Peso muerto’,s:‘2×12 — ligero’},{n:‘Press banca’,s:‘2×12’},{n:‘Remo polea’,s:‘2×12’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘No es saltarte el entreno — es parte clave del plan. No añadas series extra.’},
+{ tipo:‘rest’, dia:‘Sábado’, titulo:‘Día 3 — Descanso activo’, sub:‘Opcional’, secciones:[
+{ label:‘Actividad’, items:[{n:‘Movilidad / stretching’,s:‘15–20 min’}]}
+], nota:‘Si te apetece, un paseo tranquilo. Nada más.’},
+]},
+{ sem:5, fase:‘progresion’, label:‘Prog.’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Ciclismo zona 2’, sub:‘75 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Zona 2’,s:‘60 min’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Reinicio con mejor base. El mismo esfuerzo debería sentirse más ligero.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza (más carga)’, sub:‘70 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘4×8 — sube peso vs sem. 3’},{n:‘Peso muerto’,s:‘4×6 — trabaja fuerza’},{n:‘Press banca’,s:‘4×8’},{n:‘Remo con barra’,s:‘4×8’},{n:‘Plancha’,s:‘3×40 seg’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘Ahora el énfasis pasa a aumentar carga progresivamente cada semana.’},
+{ tipo:‘bike’, dia:‘Sábado’, titulo:‘Día 3 — Intervalos largos’, sub:‘55 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Intervalos 4 min fuerte / 2 min suave’,s:‘×5’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Bloques más largos, mayor quema calórica post-entreno.’},
+]},
+{ sem:6, fase:‘progresion’, label:‘Prog.’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Ciclismo zona 2’, sub:‘85 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Zona 2’,s:‘70 min’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Ya superas el máximo de la fase 1. Más eficiencia en quema de grasa.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza’, sub:‘70 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘5×6 — carga alta’},{n:‘Peso muerto’,s:‘4×6’},{n:‘Press banca’,s:‘4×8’},{n:‘Remo con barra’,s:‘4×8’},{n:‘Plancha’,s:‘3×45 seg’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘5 series de sentadilla. Si lo notas demasiado, quédate en 4.’},
+{ tipo:‘bike’, dia:‘Sábado’, titulo:‘Día 3 — Intervalos’, sub:‘55 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Intervalos 4 min fuerte / 2 min suave’,s:‘×6’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Un intervalo más que la semana 5.’},
+]},
+{ sem:7, fase:‘progresion’, label:‘Prog.’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Fondo largo’, sub:‘90 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Zona 2’,s:‘75 min’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘El entreno de zona 2 más largo del plan. Máxima quema de grasa.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Fuerza máxima’, sub:‘70 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Ejercicios’, items:[{n:‘Sentadilla’,s:‘5×5 — máximo progresivo’},{n:‘Peso muerto’,s:‘4×5 — carga alta’},{n:‘Press banca’,s:‘4×6’},{n:‘Dominadas asistidas o remo’,s:‘4×8’},{n:‘Plancha’,s:‘3×50 seg’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘Semana pico de fuerza. Anota los pesos para ver la progresión.’},
+{ tipo:‘bike’, dia:‘Sábado’, titulo:‘Día 3 — Intervalos intensos’, sub:‘55 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Calentamiento’,s:‘10 min’},{n:‘Intervalos 5 min fuerte / 2 min suave’,s:‘×5’},{n:‘Vuelta a la calma’,s:‘5 min’}]}
+], nota:‘Los bloques más largos del plan. Con 6 semanas de base es alcanzable.’},
+]},
+{ sem:8, fase:‘eval’, label:‘Test’, dias:[
+{ tipo:‘bike’, dia:‘Lunes’, titulo:‘Día 1 — Test cardio’, sub:‘60 min’, secciones:[
+{ label:‘Sesión’, items:[{n:‘Zona 2’,s:‘50 min’}]}
+], nota:’¿Cómo se siente vs semana 1? La misma intensidad debería sentirse mucho más fácil.’},
+{ tipo:‘gym’, dia:‘Miércoles’, titulo:‘Día 2 — Test fuerza’, sub:‘60 min’, secciones:[
+{ label:‘Calentamiento’, items:CAL_GYM},
+{ label:‘Test con pesos de semana 3’, items:[{n:‘Sentadilla’,s:‘3×8 — ¿más fácil ahora?’},{n:‘Peso muerto’,s:‘3×8’},{n:‘Press banca’,s:‘3×8’},{n:‘Remo con barra’,s:‘3×8’}]},
+{ label:‘Estiramientos’, items:EST_GYM},
+], nota:‘Usa los pesos de la semana 3. Si se sienten más ligeros, eso es la progresión real.’},
+{ tipo:‘rest’, dia:‘Sábado’, titulo:‘Día 3 — Reflexión’, sub:’’, secciones:[
+{ label:’’, items:[{n:‘Revisa tu progreso’,s:’¿Qué funcionó? ¿Qué cambiar?’}]}
+], nota:‘Momento de decidir si repetir ciclo, subir volumen o incorporar un 4º día.’},
+]},
+];
+
+const ICONOS = {bike:‘🚴’, gym:‘💪’, rest:‘🛌’};
+const FASE_CLS = {base:‘fase-base’, descarga:‘fase-descarga’, progresion:‘fase-progresion’, eval:‘fase-eval’};
+const FASE_LBL = {base:‘Fase 1 — Base’, descarga:‘Semana de descarga’, progresion:‘Fase 2 — Progresión’, eval:‘Evaluación final’};
+const SERIES_CLS = {bike:‘c-bike’, gym:‘c-gym’, rest:‘c-rest’};
+const DONE_CLS = {bike:‘ck-bike’, gym:‘ck-gym’, rest:‘ck-rest’};
+
+let done = JSON.parse(localStorage.getItem(STORAGE_KEY) || ‘{}’);
+function saveDone() { localStorage.setItem(STORAGE_KEY, JSON.stringify(done)); }
+
+function buildWeekBtns() {
+const el = document.getElementById(‘week-scroll’);
+plan.forEach((s, i) => {
+const b = document.createElement(‘button’);
+b.className = ‘week-btn’ + (s.fase === ‘descarga’ ? ’ descarga’ : ‘’) + (i === 0 ? ’ active’ : ‘’);
+b.innerHTML = `<span class="wnum">${i+1}</span><span class="wlabel">${s.label}</span><span class="dot"></span>`;
+b.onclick = () => selectSem(i);
+el.appendChild(b);
+});
+updateDots();
+}
+
+function updateDots() {
+document.querySelectorAll(’.week-btn’).forEach((b, i) => {
+b.classList.toggle(‘done’, plan[i].dias.every((_, di) => done[`${i}-${di}`]));
+});
+}
+
+function selectSem(idx) {
+document.querySelectorAll(’.week-btn’).forEach((b, i) => b.classList.toggle(‘active’, i === idx));
+const pct = ((idx + 1) / 8 * 100).toFixed(1);
+document.getElementById(‘prog-fill’).style.width = pct + ‘%’;
+document.getElementById(‘prog-pct’).textContent = pct + ‘%’;
+document.getElementById(‘week-counter’).textContent = `Sem ${idx+1} / 8`;
+renderContent(idx);
+document.querySelectorAll(’.week-btn’)[idx].scrollIntoView({behavior:‘smooth’, block:‘nearest’, inline:‘center’});
+}
+
+let dc = 0;
+function renderEjs(items, tipo) {
+return items.map(e => {
+const desc = getDesc(e.n);
+const id = ‘d’ + (dc++);
+const btn = desc ? `<button class="ej-info-btn" onclick="toggleDesc('${id}',event)">i</button>` : ‘’;
+const block = desc ? `<div class="ej-desc" id="${id}" style="max-height:0"><div class="ej-desc-inner">${desc}</div></div>` : ‘’;
+return `<div class="ejercicio"><div class="ej-row"><div class="ej-left">${btn}<span class="ej-name">${e.n}</span></div><span class="ej-series ${SERIES_CLS[tipo]}">${e.s}</span></div>${block}</div>`;
+}).join(’’);
+}
+
+function toggleDesc(id, e) {
+e.stopPropagation();
+const el = document.getElementById(id);
+if (!el) return;
+const btn = e.currentTarget;
+const isOpen = el.style.maxHeight && el.style.maxHeight !== ‘0px’;
+if (isOpen) {
+el.style.maxHeight = ‘0’;
+btn.classList.remove(‘open’);
+} else {
+el.style.maxHeight = el.scrollHeight + 100 + ‘px’;
+btn.classList.add(‘open’);
+setTimeout(() => {
+const db = el.closest(’.day-body’);
+if (db && db.style.maxHeight) db.style.maxHeight = parseInt(db.style.maxHeight) + 300 + ‘px’;
+}, 50);
+}
+}
+
+function renderContent(idx) {
+dc = 0;
+const s = plan[idx];
+const el = document.getElementById(‘content’);
+const allDone = s.dias.every((_, di) => done[`${idx}-${di}`]);
+let html = `<span class="fase-tag ${FASE_CLS[s.fase]}">${FASE_LBL[s.fase]}</span>`;
+s.dias.forEach((d, di) => {
+const isDone = !!done[`${idx}-${di}`];
+let body = ‘’;
+if (d.secciones) {
+d.secciones.forEach(sec => {
+if (sec.label) body += `<div class="section-label">${sec.label}</div>`;
+body += renderEjs(sec.items, d.tipo);
+});
+}
+html += `<div class="day-card" id="card-${di}"> <div class="day-header" onclick="toggleCard(${di})"> <div class="day-icon">${ICONOS[d.tipo]}</div> <div class="day-info"> <div class="day-title">${d.titulo}</div> <div class="day-sub">${d.dia} · ${d.sub}</div> </div> <svg class="day-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> </div> <div class="day-body" id="body-${di}"> <div class="day-body-inner"> ${body} ${d.nota ? `<div class="nota">${d.nota}</div>` : ''} <div class="done-wrap"> <span class="done-label">${isDone ? '✓ completado' : 'marcar como hecho'}</span> <button class="done-btn ${isDone ? DONE_CLS[d.tipo] : ''}" onclick="toggleDone(${idx},${di},event)">${isDone ? '✓ Hecho' : 'Marcar'}</button> </div> </div> </div> </div>`;
+});
+if (allDone) html += `<div class="week-complete show"><div class="complete-icon">🏆</div><div class="complete-title">¡Semana completada!</div><div class="complete-sub">Bien hecho. Pasa a la semana ${idx+2<=8 ? idx+2 : 'siguiente'} cuando estés listo.</div></div>`;
+el.innerHTML = html;
+el.scrollTop = 0;
+}
+
+function toggleCard(di) {
+const card = document.getElementById(`card-${di}`);
+const body = document.getElementById(`body-${di}`);
+const exp = card.classList.toggle(‘expanded’);
+body.style.maxHeight = exp ? body.scrollHeight + 500 + ‘px’ : ‘0’;
+}
+
+function toggleDone(semIdx, di, e) {
+e.stopPropagation();
+const key = `${semIdx}-${di}`;
+done[key] = !done[key];
+saveDone();
+updateDots();
+renderContent(semIdx);
+const card = document.getElementById(`card-${di}`);
+const body = document.getElementById(`body-${di}`);
+card.classList.add(‘expanded’);
+body.style.maxHeight = body.scrollHeight + 500 + ‘px’;
+}
+
+buildWeekBtns();
+selectSem(0);
+</script>
+
+</body>
+</html>
